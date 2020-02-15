@@ -16,7 +16,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  PageController _pageController;
 
   Widget select = MaterialApp(
       home: Scaffold());
@@ -24,12 +23,10 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState(){
     super.initState();
-    _pageController = PageController();
   }
 
   @override
   void dispose() {
-    _pageController.dispose();
     super.dispose();
   }
 
@@ -42,7 +39,6 @@ class _MyAppState extends State<MyApp> {
           LocalStorageManager.instance.getAccount().then((acc){
             select = LoginPage(acc);
           });
-//          select = LoginPage(new AccountInfo(sn: '', userPassword: '', uid: '', givenName: '', displayName: '', userPKCS12: '', privateKey: '', certif: ''));
         });
 
       }else {
@@ -52,61 +48,10 @@ class _MyAppState extends State<MyApp> {
       }
     });
 
-    //return TabPage(_pageController);
     return MaterialApp(
       home: select,
     );
   }
 
-
-
-//  @override
-//  Widget build(BuildContext context) {
-//    return MaterialApp(
-//      home: Scaffold(
-//        body: PageView(
-//          controller: _pageController,
-//          children: [
-//            Container(
-//              color: Colors.red,
-//              child: Center(
-//                child: RaisedButton(
-//                  color: Colors.white,
-//                  onPressed: () {
-//                    if (_pageController.hasClients) {
-//                      _pageController.animateToPage(
-//                        1,
-//                        duration: const Duration(milliseconds: 400),
-//                        curve: Curves.easeInOut,
-//                      );
-//                    }
-//                  },
-//                  child: Text('Next'),
-//                ),
-//              ),
-//            ),
-//            Container(
-//              color: Colors.blue,
-//              child: Center(
-//                child: RaisedButton(
-//                  color: Colors.white,
-//                  onPressed: () {
-//                    if (_pageController.hasClients) {
-//                      _pageController.animateToPage(
-//                        0,
-//                        duration: const Duration(milliseconds: 400),
-//                        curve: Curves.easeInOut,
-//                      );
-//                    }
-//                  },
-//                  child: Text('Previous'),
-//                ),
-//              ),
-//            ),
-//          ],
-//        ),
-//      ),
-//    );
-//  }
 }
 

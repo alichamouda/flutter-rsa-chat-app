@@ -8,9 +8,9 @@ import 'package:insat_chat/Models/MyConsts.dart';
 import 'package:insat_chat/Models/accountInfo.dart';
 import 'package:insat_chat/Models/message.dart';
 import 'package:insat_chat/Models/userInfo.dart';
-import 'package:insat_chat/Services/rsaService.dart';
 import 'package:insat_chat/UI/UI_Components/recievedMessage.dart';
 import 'package:insat_chat/UI/UI_Components/sentMessage.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
 
 class ChatScroll extends StatefulWidget {
   final UserInfo userInfo;
@@ -46,54 +46,13 @@ class _ChatScrollState extends State<ChatScroll> {
     messageController.dispose();
     super.dispose();
   }
-//
-//  sendMessage() {
-//    if (socketIO != null) {
-//      print("sending message...");
-//    }
-//  }
-//
-//  initSocket() async {
-//    socketIO = await manager.createInstance(
-//        SocketOptions(MyConsts.api, transports: [Transports.POLLING]));
-//    socketIO.onConnect((data) {
-//      print("connected...");
-//      print(data);
-//    });
-//    socketIO.onConnectError(pprint);
-//    socketIO.onConnectTimeout(pprint);
-//    socketIO.onError(pprint);
-//    socketIO.onDisconnect(pprint);
-//    socketIO.on("custom_receive", addMessage);
-//    socketIO.connect();
-//  }
-//
-//  pprint(data) {
-//    print(data);
-//  }
-//
-//  addMessage(data) {
-//    var cipher = base64Decode(
-//        data.toString().split(",")[0].split(":")[1].trim());
-//
-//    print(cipher);
-//    var decrypted = RSASpecialService.cipherToString(RSASpecialService.decryptStringPem(
-//        account.userPKCS12, account.privateKey, cipher));
-//    if(decrypted.length >0){
-//      Message msg = new Message(decrypted,
-//        data.toString().split(",")[1].split(":")[1].trim(),
-//        data.toString().split(",")[2].split(":")[1].trim(),
-//        data.toString().split(",")[3].split(":")[1].trim(),
-//      );
-//      this.messages[msg.source].insert(0,msg);
-//    }
-//  }
+
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      type: MaterialType.transparency,
-      child: SafeArea(
+    return Scaffold(
+      resizeToAvoidBottomPadding: true,
+      body: SafeArea(
         child: Container(
           decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -197,29 +156,30 @@ class _ChatScrollState extends State<ChatScroll> {
                           onTap: () {
                             setState(() {
                               if (messageController.value.text.trim() != '') {
-                                var cryptMsg = base64Encode(
-                                    RSASpecialService.encryptStringPem(
-                                        userInfo.userPKCS12,
-                                        messageController.value.text.trim()));
-                                var strMsg = '{"data":"' +
-                                    cryptMsg +
-                                    '","receiver":"' +
-                                    userInfo.sn +
-                                    '","source":"' +
-                                    account.sn +
-                                    '","time":"12/12/2008"}';
-                                var strMsga = '{"data":"' +
-                                    messageController.value.text.trim() +
-                                    '","receiver":"' +
-                                    userInfo.sn +
-                                    '","source":"' +
-                                    account.sn +
-                                    '","time":"12/12/2008"}';
-                                socketIO.emit("custom_send", ["" + strMsg]);
-                                messages[userInfo.sn].insert(0,
-                                    new Message.fromJson(jsonDecode(strMsga)));
-                                messageController.value =
-                                    TextEditingValue(text: '');
+                                final pkey = encrypt.RSAKeyParser().parse(account.privateKey);
+                                final pubkey = encrypt.RSAKeyParser().parse(userInfo.userPKCS12);
+                                final encrypter = encrypt.Encrypter(encrypt.RSA(publicKey: pubkey, privateKey: pkey));
+                                final encrypted = encrypter.encrypt(messageController.value.text.trim());
+
+                                  var strMsg = '{"data":"' +
+                                      encrypted.base64 +
+                                      '","receiver":"' +
+                                      userInfo.sn +
+                                      '","source":"' +
+                                      account.sn +
+                                      '","time":"12/12/2008"}';
+                                  var strMsga = '{"data":"' +
+                                      messageController.value.text.trim() +
+                                      '","receiver":"' +
+                                      userInfo.sn +
+                                      '","source":"' +
+                                      account.sn +
+                                      '","time":"12/12/2008"}';
+                                  socketIO.emit("custom_send", ["" + strMsg]);
+                                  messages[userInfo.sn].insert(0,
+                                      new Message.fromJson(jsonDecode(strMsga)));
+                                  messageController.value =
+                                      TextEditingValue(text: '');
                               }
                             });
                           },

@@ -12,6 +12,8 @@ import 'package:insat_chat/Services/rsaService.dart';
 import 'package:insat_chat/UI/UI_Components/userItem.dart';
 import 'package:insat_chat/UI/settings.dart';
 import 'package:adhara_socket_io/adhara_socket_io.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
+import 'package:simple_rsa/simple_rsa.dart';
 
 class UserList extends StatefulWidget {
   UserList({Key key, this.users, this.account}) : super(key: key);
@@ -66,16 +68,13 @@ class _UserListState extends State<UserList> {
 
   addMessage(data) {
 
+    final pkey = encrypt.RSAKeyParser().parse(account.privateKey);
+    final pubkey = encrypt.RSAKeyParser().parse(account.userPKCS12);
+    final encrypter = encrypt.Encrypter(encrypt.RSA(publicKey: pubkey, privateKey: pkey));
+    final decrypteda = encrypter.decrypt(encrypt.Encrypted(base64Decode(data.toString().split(",")[0].split(":")[1].trim())));
 
-
-    var cipher = base64Decode(
-        data.toString().split(",")[0].split(":")[1].trim());
-
-    print(cipher.length);
-    var decrypted = RSASpecialService.cipherToString(RSASpecialService.decryptStringPem(
-        account.userPKCS12, account.privateKey, cipher));
-    if(decrypted.length >0){
-      Message msg = new Message(decrypted,
+    if(decrypteda.length >0){
+      Message msg = new Message(decrypteda,
         data.toString().split(",")[1].split(":")[1].trim(),
         data.toString().split(",")[2].split(":")[1].trim(),
         data.toString().split(",")[3].split(":")[1].trim(),
@@ -84,7 +83,7 @@ class _UserListState extends State<UserList> {
       Flushbar(
         flushbarPosition: FlushbarPosition.TOP,
         title: ""+msg.source,
-        message: ""+decrypted.toString(),
+        message: ""+decrypteda,
         margin: EdgeInsets.all(8),
         borderRadius: 20,
         duration: Duration(seconds: 3),

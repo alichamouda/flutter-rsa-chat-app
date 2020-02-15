@@ -12,7 +12,6 @@ import "package:pointycastle/export.dart";
 class RSASpecialService {
   RSASpecialService._privateConstructor();
   static final RSASpecialService  instance = RSASpecialService._privateConstructor();
-
   static SecureRandom getSecureRandom() {
     var secureRandom = FortunaRandom();
     var random = Random.secure();
@@ -31,6 +30,7 @@ class RSASpecialService {
     var keyGenerator = new RSAKeyGenerator();
     keyGenerator.init(params);
     return keyGenerator.generateKeyPair();
+
   }
 
   Future<AsymmetricKeyPair<PublicKey, PrivateKey>> computeRSAKeyPair(
